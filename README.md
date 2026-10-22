@@ -63,19 +63,20 @@
 
 ```mermaid
 flowchart TD
-    Instance["UBRGameInstance"] -->|게임 설정| Match["ABRGameMode · ABRGameState"]
-    Match -->|경기 진행| Player["ABRCharacter"]
-    Match -->|시작| Zone["AZone"]
+    Instance["UBRGameInstance<br/>세션·설정"] --> Mode["ABRGameMode<br/>경기 진행"]
+    Mode --> State["ABRGameState<br/>경기 상태 복제"]
+    Mode --> Player["ABRCharacter"]
+    State --> Zone["AZone"]
 
-    Player -->|발사| Combat["AWeaponItem · ABullet"]
-    Combat -->|피해| Player
-    Player -->|Client RPC| UI["인벤토리 · HUD"]
-    UI -->|장착·버리기 요청| Player
-    Player -->|탑승·하차| Vehicle["AVehicle · 차량 Component"]
+    Player --> Combat["AWeaponItem · ABullet"]
+    Combat --> Player
+    Player --> Vehicle["AVehicle · 차량 Component"]
+    Player --> UI["인벤토리 · HUD"]
+    Player --> Map["UMinimapComponent"]
 
-    Zone -->|영역 밖 피해| Player
-    Zone -->|현재·다음 영역| Map["UMinimapComponent"]
-    Player -->|위치·팀 마커| Map
+    Zone --> Player
+    Zone --> Map
+
 ```
 
 | 클래스 | 역할 |
@@ -84,12 +85,12 @@ flowchart TD
 | `ABRGameMode` / `ABRGameState` | 게임 시작·종료와 생존 결과 처리, 경기 상태와 플레이어 목록 복제 |
 | `ABRCharacter` | 플레이어 입력, 전투·인벤토리·소생의 서버 처리, 소유자 UI와 공유 상태 갱신 |
 | `AWeaponItem` / `ABullet` / `UBRAnim` | 발사 주기·탄창, 투사체 충돌·피해, 애니메이션 상태와 Notify 처리 |
-| `AVehicle` / 차량 Component | 좌석과 조종 대상 변경, Chaos 차량 입력 적용, 서버 상태 복제·보간 |
-| `AZone` / `UMinimapComponent` | 자기장 단계 진행·피해 판정, 지도 위 위치·범위 표시와 클릭 좌표 변환 |
+| `AVehicle` / 차량 Component | 차량 탑승·조종 전환, 운전 입력의 서버 전달·적용, 차량 상태 복제·원격 보간 |
+| `AZone` / `UMinimapComponent` | 자기장 단계 진행·피해 판정, 본인·팀원 위치와 자기장·팀 마커 표시, 지도 클릭 좌표 변환 |
 
-세션 생성이 완료되면 **호스트도 플레이어로 참여하는 리슨 서버**로 맵을 열었습니다. 세션 참가 시에는 접속 주소를 얻은 뒤 해당 서버로 이동하도록 했습니다. 기존 세션이 있으면 새 설정을 보관하고, 세션 제거 완료 콜백에서 다시 생성하도록 순서를 나눴습니다.
+세션 생성 시 호스트는 **리슨 서버**로 맵을 열고, 참가자는 접속 주소로 이동하도록 했습니다. 
 
-경기 진행은 GameMode와 GameState에서 관리했습니다. 비행기 낙하 모드는 `APlaneGameMode`에서 시작 흐름을 확장하고, 낙하 시 저장해 둔 캐릭터를 다시 조종하도록 연결했습니다.
+기존 세션은 삭제 완료 콜백 이후 재생성하며, 비행기 낙하 흐름은 APlaneGameMode에서 확장했습니다.
 
 ---
 
