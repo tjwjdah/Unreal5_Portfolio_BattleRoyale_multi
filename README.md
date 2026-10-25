@@ -38,7 +38,7 @@
 
 멀티플레이 환경의 기본 구조를 직접 구현하는 것을 목표로, **서버 중심의 게임 상태 관리와 클라이언트 동기화**에 초점을 맞췄습니다.
 
-아이템 획득·전투·팀원 소생 등의 요청은 **Server RPC**로 전달해 서버에서 처리하고, 인벤토리·체력 등 개인 UI는 **Client RPC**로 갱신했습니다. 발사 효과와 일부 애니메이션은 **NetMulticast RPC**로 전달하고, 조준·기절·장비 외형 등의 상태는 <strong>변수 복제(Replication)</strong>로  동기화했습니다.
+아이템 획득·전투·팀원 소생 등의 요청은 **Server RPC**로 전달해 서버에서 처리하고, 인벤토리·체력 등 개인 UI는 **Client RPC**로 갱신했습니다. 발사 효과와 일부 애니메이션은 **NetMulticast RPC**로 전달하고, 조준·기절·장비 외형 등의 상태는 <strong>변수 복제(Replication)</strong>로 동기화했습니다.
 
 ---
 
@@ -48,10 +48,9 @@
 
 | 핵심 기술 | 설명 |
 |---|---|
-| 전투 처리와 상태 복제 | 서버에서 투사체를 생성하고 충돌에 따른 피해를 처리했습니다. 탄약·조준 등은 복제 대상을 구분하고, 재장전과 장비 전환은 AnimNotify에서 서버 요청으로 연결했습니다. |
-| 차량 동기화 | 운전 입력을 서버에 전달하고 위치·회전·속도 상태를 복제했습니다. 다른 플레이어의 차량은 위치와 속도를 이용한 곡선 보간, 회전 보간으로 갱신했습니다. |
+| 전투 처리와 상태 복제 | 서버에서 투사체 생성·피해 판정과 팀원 소생을 처리했습니다. 탄약·조준 등은 복제 대상을 구분하고, 재장전과 장비 전환은 AnimNotify에서 Server RPC를 호출하도록 했습니다. |
+| 차량 동기화 | 운전 입력을 서버에 전달하고 위치·회전·속도 상태를 복제했습니다. 다른 플레이어의 차량은 위치를 Hermite 곡선으로, 회전을 Quaternion Slerp로 보간했습니다. |
 | 서버 인벤토리와 장비·UI | 서버가 아이템별 ID·수량·무게를 관리하고, 변경 결과를 소유자의 UI에 전달했습니다. 화면 내 슬롯 정렬과 실제 장비 교체를 구분하고, 무기 소켓과 방어구 Mesh를 갱신했습니다. |
-| 팀원 소생 | 서버가 같은 팀인지, 소생 가능한 상태와 거리인지 반복 검사했습니다. 시작 시간을 서버에 기록하고, 조건을 유지한 채 필요한 시간이 지나면 소생을 완료했습니다. |
 | 자기장과 지도 | 단계별 축소 속도·대기 시간·피해량을 적용했습니다. 월드 좌표를 지도 좌표로 바꿔 위치와 자기장 범위를 표시하고, 지도 클릭은 월드 위치로 변환해 팀 마커와 연결했습니다. |
 
 ---
@@ -83,13 +82,13 @@ flowchart TD
 | `UBRGameInstance` | Online Subsystem을 통한 세션 생성·검색·참가, 게임 설정과 아이템 DataTable 조회 |
 | `ABRGameMode` / `ABRGameState` | 게임 시작·종료와 생존 결과 처리, 경기 상태와 플레이어 목록 복제 |
 | `ABRCharacter` | 플레이어 입력, 전투·인벤토리·소생의 서버 처리, 소유자 UI와 공유 상태 갱신 |
-| `AWeaponItem` / `ABullet` / `UBRAnim` | 발사 주기·탄창, 투사체 충돌·피해, 애니메이션 상태와 Notify 처리 |
+| `AWeaponItem` / `ABullet` / `UBRAnim` | 발사 주기·탄창, 투사체 충돌·피해, 애니메이션 상태와 AnimNotify 처리 |
 | `AVehicle` / 차량 Component | 차량 탑승·조종 전환, 운전 입력의 서버 전달·적용, 차량 상태 복제·원격 보간 |
 | `AZone` / `UMinimapComponent` | 자기장 단계 진행·피해 판정, 본인·팀원 위치와 자기장·팀 마커 표시, 지도 클릭 좌표 변환 |
 
 세션 생성 시 호스트는 **리슨 서버**로 맵을 열고, 참가자는 접속 주소로 이동하도록 했습니다. 
 
-기존 세션은 삭제 완료 콜백 이후 재생성하며, 비행기 낙하 흐름은 APlaneGameMode에서 확장했습니다.
+기존 세션이 있으면 삭제 완료 콜백 이후 새 세션을 생성하도록 했습니다. 
 
 ---
 
@@ -109,7 +108,9 @@ flowchart TD
 
 #### 서버 기반 팀원 소생
 
-팀원 소생은 **서버에서 팀·거리·상태를 검사하고, 진행 중에도 조건을 반복 확인**하도록 구현했습니다. 소생 완료는 클라이언트 UI가 아닌 **서버의 경과 시간을 기준으로 판정**하고, 조건이 해제되면 소생을 취소하도록 했습니다.
+팀원 소생은 **서버에서 팀·거리·상태를 검사하고, 진행 중에도 조건을 반복 확인**하도록 구현했습니다. 
+
+소생 완료는 클라이언트 UI가 아닌 **서버의 경과 시간을 기준으로 판정**하고, 진행 중 조건을 만족하지 못하면 소생을 취소하도록 했습니다.
 
 #### 소유자와 다른 플레이어의 갱신 구분
 
@@ -119,11 +120,11 @@ flowchart TD
 | 소유자를 제외한 클라이언트 | 조준·기울이기·활성 장비 슬롯, 체력 | `COND_SkipOwner`로 복제 |
 | 상태를 복제받는 클라이언트 | 기절·소생 상태, 방어구 외형 | 복제값 변경 시 RepNotify에서 표시 갱신 |
 
-발사 효과도 소유자와 다른 플레이어를 구분했습니다. 소유자는 로컬 입력에서 효과를 재생하고, 멀티캐스트로 받은 발사 효과는 소유자에서 다시 재생하지 않도록 했습니다.
+발사 효과는 소유자의 로컬 입력에서 재생하고, **NetMulticast RPC로 전달된 효과는 소유자에서 다시 재생하지 않도록** 처리했습니다.
 
 #### AnimNotify와 서버 처리 시점 연결
 
-재장전·장비 전환·투척은 **AnimNotify를 통해 애니메이션의 특정 시점에 서버 요청**을 보내도록 했습니다. 요청은 로컬에서 조종하는 캐릭터만 보내도록 제한하고, 재장전 시 **탄약 수량 계산과 차감은 서버에서 처리**했습니다.
+재장전·장비 전환·투척은 **AnimNotify를 통해 애니메이션의 특정 시점에 Server RPC**를 보내도록 했습니다. 요청은 로컬에서 조종하는 캐릭터만 보내도록 제한하고, 재장전 시 **탄약 수량 계산과 차감은 서버에서 처리**했습니다.
 
 <details>
 <summary>관련 코드 보기</summary>
@@ -144,6 +145,9 @@ ABRCharacter::DamageTaken
 ABRCharacter::GetLifetimeReplicatedProps
 ABRCharacter::SERVERChangeSlot_Implementation
 ABRCharacter::ServerThrowGrenade
+ABRCharacter::CanReviveTarget
+ABRCharacter::UpdateServerRevive
+ABRCharacter::CancelServerRevive
 AWeaponItem::StartFire
 AWeaponItem::Fire
 AWeaponItem::Reload
@@ -172,7 +176,7 @@ UBRAnim::AnimNotify_EquipWeapon
 
 차량 물리에는 Chaos 차량 이동 Component를 사용했습니다. 별도의 `UVehicleMovementComponent`는 가속·조향·브레이크·핸드브레이크 입력을 모아 Chaos Component에 전달하고, `UVehicleMovementReplicator`는 입력 전송과 상태 복제를 담당하도록 했습니다.
 
-운전 클라이언트는 입력을 로컬 차량에 적용하면서 Server RPC로도 전달했습니다. 서버는 받은 입력을 차량에 적용하고, **위치·회전·속도와 마지막으로 받은 입력 정보**를 하나의 상태로 묶어 복제했습니다. **이 상태를 전달받은 클라이언트는 위치·회전·속도를 보정한 뒤, 이후의 로컬 입력을 다시 반영**했습니다.
+운전 클라이언트는 입력을 로컬 차량에 적용하면서 Server RPC로도 전달했습니다. 서버는 받은 입력을 차량에 적용하고, **위치·회전·속도와 마지막으로 받은 입력 정보**를 하나의 상태로 묶어 복제했습니다. 운전 클라이언트는 **서버에서 복제받은 위치·회전·속도로 차량 상태를 보정**한 뒤, 서버가 아직 확인하지 않은 로컬 입력값을 차량 이동 Component에 다시 전달했습니다.
 
 #### 다른 플레이어의 차량 보간
 
@@ -206,11 +210,13 @@ UVehicleMovementReplicator::Simul_OnRep
 UVehicleMovementReplicator::CreateSpline
 UVehicleMovementReplicator::InterpolateLocation
 UVehicleMovementReplicator::InterpolateRotation
+UVehicleMovementReplicator::InterpolateVelocity
 ABRCharacter::ServerHandleRequestEnterVehicle
 ABRCharacter::ServerHandleExitingVehicle
 ```
 
 </details>
+
 ---
 
 <a id="inventory-equipment"></a>
@@ -223,7 +229,7 @@ ABRCharacter::ServerHandleExitingVehicle
 
 같은 종류의 아이템과 실제 보유 항목을 구분하기 위해 **아이템 종류 ID와 서버에서 발급한 보유 항목 ID**를 따로 사용했습니다. UI에서도 이 고유 ID를 기준으로 수량 변경과 장착 요청의 대상을 식별했습니다.
 
-아이템 획득·버리기는 **서버에서 수량·무게와 아이템 상태를 확인**한 뒤 보유 목록을 갱신하고, 변경 결과를 Client RPC로 소유자의 UI에 전달했습니다.
+아이템 획득·버리기는 **서버에서 아이템 상태와 보유 수량을 확인**하고, 인벤토리와 무게를 갱신한 뒤, 변경 결과를 Client RPC로 소유자의 UI에 전달했습니다.
 
 #### 화면 내 정렬과 장비 교체 분리
 
@@ -257,6 +263,7 @@ ABRCharacter::CanAddedInventory
 ABRCharacter::ClientInventoryDragDrop
 ABRCharacter::ServerEquipInventory
 ABRCharacter::ServerEquipInventoryMainSlot
+ABRCharacter::ServerDropInventoryItem
 ABRCharacter::HandleClothInfoChanged
 UItemWidget::NativeOnDrop
 UItemWidget::SwitchInfo
@@ -275,7 +282,7 @@ ACharacterPreview::UpdateClothSlot
 
 자기장 단계별 **축소 속도·대기 시간·초당 피해량**을 설정하고, 서버에서 다음 중심과 목표 크기를 결정했습니다. **NetMulticast RPC로 축소 목표와 속도를 전달**해 클라이언트에서도 자기장을 이동·축소하고, 단계 종료 시 서버의 최종 위치·크기를 반영했습니다.
 
-영역 밖 피해는 **서버에서 1초 간격으로 판정**하고, 자기장 밖의 생존 플레이어에게 단계별 피해를 적용했습니다.
+영역 밖 피해는 **서버에서 1초 간격으로 판정**하고, 자기장 밖의 생존 캐릭터에게 단계별 피해를 적용했습니다.
 
 #### 미니맵과 전체 지도
 
@@ -283,7 +290,7 @@ ACharacterPreview::UpdateClothSlot
 
 전체 지도에는 **현재 자기장과 다음 목표 영역**을 표시했습니다. 자기장의 월드 중심과 크기를 지도 좌표와 반지름으로 변환하고, `NativePaint`에서 원을 그렸습니다.
 
-지도 클릭 위치를 **월드 좌표로 변환해 Server RPC로 전달**하고, 서버에서는 해당 위치에 **팀 마커 전용 Actor를 생성하거나 기존 마커를 이동**시켰습니다. 마커의 월드 좌표를 지도 좌표로 변환해 **같은 팀의 클라이언트 지도에만 표시**했습니다.
+지도 클릭 위치를 **월드 좌표로 변환해 Server RPC로 전달**하고, 서버에서는 해당 위치에 **팀 마커 전용 Actor를 생성하거나 기존 마커를 이동**시켰습니다. 클라이언트에서는 마커의 월드 좌표를 지도 좌표로 변환하고, **같은 팀의 마커만 지도에 표시**했습니다.
 
 <details>
 <summary>관련 코드 보기</summary>
@@ -337,8 +344,8 @@ ABigMapMarker::BeginPlay
 
 ### 인벤토리 UI 동기화
 
-인벤토리 전체 배열을 복제하는 대신, **변경된 항목만 Client RPC로 전달**해 소유자의 UI를 갱신했습니다. 그 결과 UI를 재생성하거나 전체 상태를 다시 동기화하려면, **서버의 전체 인벤토리 데이터를 다시 전달받아 UI를 재구성하는 기능**이 추가로 필요합니다.
+인벤토리 전체 배열을 복제하는 대신, **변경된 항목만 Client RPC로 전달**해 소유자의 UI를 갱신했습니다. 따라서 UI를 재생성하거나 전체 상태를 다시 동기화하려면, **서버의 전체 인벤토리 데이터를 다시 전달받아 UI를 재구성하는 기능**이 추가로 필요합니다.
 
 ### 자기장 피해 판정의 조회 비용
 
-자기장 피해를 판정할 때마다 **월드의 전체 캐릭터를 조회**하므로, 플레이어 수가 늘어나면 조회 비용도 증가할 수 있습니다. 이를 개선하려면 별도의 생존 캐릭터 목록을 관리해 조회 범위를 줄일 수 있습니다.
+자기장 피해를 판정할 때마다 **월드의 전체 캐릭터를 조회**하므로, 캐릭터 수가 늘어나면 조회 비용도 증가할 수 있습니다. 이를 개선하려면 별도의 생존 캐릭터 목록을 관리해 조회 범위를 줄일 수 있습니다.
