@@ -126,6 +126,9 @@ flowchart TD
 
 재장전·장비 전환·투척은 **AnimNotify를 통해 애니메이션의 특정 시점에 Server RPC**를 보내도록 했습니다. 요청은 로컬에서 조종하는 캐릭터만 보내도록 제한하고, 재장전 시 **탄약 수량 계산과 차감은 서버에서 처리**했습니다.
 
+<img width="426" height="240" alt="Video Project 74 (1)" src="https://github.com/user-attachments/assets/d7a41157-913b-4dc1-9207-3d40d49afc70" />
+
+
 <details>
 <summary>관련 코드 보기</summary>
 
