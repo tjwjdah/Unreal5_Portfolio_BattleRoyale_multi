@@ -86,9 +86,14 @@ flowchart TD
 | `AVehicle` / 차량 Component | 차량 탑승·조종 전환, 운전 입력의 서버 전달·적용, 차량 상태 복제·원격 보간 |
 | `AZone` / `UMinimapComponent` | 자기장 단계 진행·피해 판정, 본인·팀원 위치와 자기장·팀 마커 표시, 지도 클릭 좌표 변환 |
 
-세션 생성 시 호스트는 **리슨 서버**로 맵을 열고, 참가자는 접속 주소로 이동하도록 했습니다. 
+### 세션 생성·참가
 
-기존 세션이 있으면 삭제 완료 콜백 이후 새 세션을 생성하도록 했습니다. 
+**Online Subsystem을 이용해 세션 생성·검색·참가를 처리**했습니다. 호스트는 **리슨 서버**로 맵을 열고, 참가자는 검색한 세션의 접속 주소로 이동하도록 했습니다.
+
+기존 세션이 있으면 **삭제 완료 콜백 이후 새 세션을 생성**하도록 했습니다.
+
+<img width="960" height="270" alt="Video_Project_79_2_FullWidth_10MB" src="https://github.com/user-attachments/assets/9aa1c3a4-c75f-4099-8add-7d357163089c" />
+
 
 ---
 
@@ -126,11 +131,10 @@ flowchart TD
 
 재장전·장비 전환·투척은 **AnimNotify를 통해 애니메이션의 특정 시점에 Server RPC**를 보내도록 했습니다. 요청은 로컬에서 조종하는 캐릭터만 보내도록 제한하고, 재장전 시 **탄약 수량 계산과 차감은 서버에서 처리**했습니다.
 
-<img width="426" height="240" alt="Video Project 74 (1)" src="https://github.com/user-attachments/assets/d7a41157-913b-4dc1-9207-3d40d49afc70" />
-
+<img width="960" height="270" alt="Video_Project_74_10MB" src="https://github.com/user-attachments/assets/d2ce2a8f-9754-4d3f-a400-8cf99b23d7ed" />
 
 <details>
-<summary>관련 코드 보기</summary>
+<summary>관련 코드 위치</summary>
 
 ```text
 PP4/Character/BRCharacter.h
@@ -193,8 +197,10 @@ UBRAnim::AnimNotify_EquipWeapon
 
 탑승 캐릭터는 **NetMulticast RPC로 차량의 좌석 소켓에 부착**하고, 동승자는 차량을 조종하지 않도록 구분했습니다.
 
+<img width="960" height="270" alt="Video_Project_74_Part2_30fps_10MB_v2" src="https://github.com/user-attachments/assets/510eafb6-f87c-4ec3-9f3b-92d4dd53bf4e" />
+
 <details>
-<summary>관련 코드 보기</summary>
+<summary>관련 코드 위치</summary>
 
 ```text
 PP4/Vehicles/VehicleMovementComponent.h
@@ -246,8 +252,10 @@ ABRCharacter::ServerHandleExitingVehicle
 
 인벤토리의 캐릭터 미리보기는 별도 Actor와 SceneCapture로 구성하고, 무기와 머리·몸통 방어구 변경도 함께 반영했습니다.
 
+<img width="480" height="270" alt="Video_Project_74_3_Optimized_10MB" src="https://github.com/user-attachments/assets/864818d7-ab86-467c-ae13-edce5d276a31" />
+
 <details>
-<summary>관련 코드 보기</summary>
+<summary>관련 코드 위치</summary>
 
 ```text
 PP4/GameInfo.h
@@ -287,6 +295,8 @@ ACharacterPreview::UpdateClothSlot
 
 영역 밖 피해는 **서버에서 1초 간격으로 판정**하고, 자기장 밖의 생존 캐릭터에게 단계별 피해를 적용했습니다.
 
+<img width="960" height="270" alt="Video_Project_78_10MB_v2" src="https://github.com/user-attachments/assets/581faa49-8023-4cfe-9916-b5b0d53bce1d" />
+
 #### 미니맵과 전체 지도
 
 월드 좌표를 지도 좌표로 변환해 **본인·팀원과 등록된 Actor의 위치**를 표시하고, 확대 비율에 맞춰 아이콘 위치를 갱신했습니다.
@@ -295,8 +305,10 @@ ACharacterPreview::UpdateClothSlot
 
 지도 클릭 위치를 **월드 좌표로 변환해 Server RPC로 전달**하고, 서버에서는 해당 위치에 **팀 마커 전용 Actor를 생성하거나 기존 마커를 이동**시켰습니다. 클라이언트에서는 마커의 월드 좌표를 지도 좌표로 변환하고, **같은 팀의 마커만 지도에 표시**했습니다.
 
+<img width="960" height="270" alt="Video_Project_79_1_10MB" src="https://github.com/user-attachments/assets/f5bea22a-c2ac-4eb7-be54-0dec779cb83c" />
+
 <details>
-<summary>관련 코드 보기</summary>
+<summary>관련 코드 위치</summary>
 
 ```text
 PP4/World/Zone.h
