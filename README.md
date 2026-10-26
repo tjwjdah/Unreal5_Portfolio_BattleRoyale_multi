@@ -104,6 +104,19 @@ flowchart TD
 
 <img width="960" height="270" alt="Video_Project_79_2_FullWidth_10MB" src="https://github.com/user-attachments/assets/9aa1c3a4-c75f-4099-8add-7d357163089c" />
 
+<details>
+<summary>관련 코드 위치</summary>
+
+**[BRGameInstance.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.h) · [BRGameInstance.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.cpp)**
+
+- [`UBRGameInstance::HostGame`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.cpp#L139-L190)
+- [`UBRGameInstance::OnDestroySessionComplete`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.cpp#L239-L257)
+- [`UBRGameInstance::OnCreateSessionComplete`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.cpp#L201-L216)
+- [`UBRGameInstance::FindSession`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.cpp#L259-L270)
+- [`UBRGameInstance::Join`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.cpp#L283-L288)
+- [`UBRGameInstance::OnJoinSessionComplete`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.cpp#L290-L313)
+
+</details>
 
 ---
 
@@ -146,36 +159,51 @@ flowchart TD
 <details>
 <summary>관련 코드 위치</summary>
 
-```text
-PP4/Character/BRCharacter.h
-PP4/Character/BRCharacter.cpp
-PP4/Items/WeaponItem.h
-PP4/Items/WeaponItem.cpp
-PP4/Items/Bullet.h
-PP4/Items/Bullet.cpp
-PP4/Character/Animation/BRAnim.h
-PP4/Character/Animation/BRAnim.cpp
+**[BRCharacter.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.h) · [BRCharacter.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp)**
 
-ABRCharacter::ServerFireWeapon
-ABRCharacter::ServerReloadWeapon
-ABRCharacter::DamageTaken
-ABRCharacter::GetLifetimeReplicatedProps
-ABRCharacter::SERVERChangeSlot_Implementation
-ABRCharacter::ServerThrowGrenade
-ABRCharacter::CanReviveTarget
-ABRCharacter::UpdateServerRevive
-ABRCharacter::CancelServerRevive
-AWeaponItem::StartFire
-AWeaponItem::Fire
-AWeaponItem::Reload
-AWeaponItem::MCPlaySoundandEffect_Implementation
-ABullet::OnHit
-ABullet::GetDamageMultiplier
-ABullet::CalculateArmorDamage
-UBRAnim::AnimNotify_ThrowGrenade
-UBRAnim::AnimNotify_RifleReload
-UBRAnim::AnimNotify_EquipWeapon
-```
+- [`ABRCharacter::PressAttack`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L546-L603)
+- [`ABRCharacter::ServerFireWeapon`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3669-L3683)
+- [`ABRCharacter::ServerReloadWeapon`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3748-L3774)
+- [`ABRCharacter::SERVERChangeSlot_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3776-L3779)
+- [`ABRCharacter::ServerChangeSlot`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L1660-L1725)
+- [`ABRCharacter::ServerThrowGrenade`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3706-L3718)
+- [`ABRCharacter::TraceToCrosshair`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2148-L2175)
+- [`ABRCharacter::DamageTaken`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2177-L2226)
+- [`ABRCharacter::GetLifetimeReplicatedProps`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3062-L3106)
+- [`ABRCharacter::CLIENTUpdateHealth_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3523-L3536)
+- [`ABRCharacter::OnRep_TotalAmmo`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4065-L4070)
+- [`ABRCharacter::HandleTotalAmmoChanged`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4072-L4079)
+- [`ABRCharacter::OnRep_IsPlayerDown`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4154-L4157)
+- [`ABRCharacter::HandleIsPlayerDownChanged`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4159-L4171)
+- [`ABRCharacter::OnRep_BeingRevived`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4182-L4185)
+- [`ABRCharacter::HandleBeingRevivedChanged`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4187-L4197)
+- [`ABRCharacter::SERVERBeingRevived_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4198-L4226)
+- [`ABRCharacter::CanReviveTarget`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3929-L3939)
+- [`ABRCharacter::UpdateServerRevive`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3958-L3971)
+- [`ABRCharacter::CancelServerRevive`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3941-L3956)
+- [`ABRCharacter::ServerOnReviveDone`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4229-L4233)
+
+**[WeaponItem.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/WeaponItem.h) · [WeaponItem.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/WeaponItem.cpp)**
+
+- [`AWeaponItem::StartFire`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/WeaponItem.cpp#L70-L96)
+- [`AWeaponItem::CanFire`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/WeaponItem.cpp#L98-L106)
+- [`AWeaponItem::Fire`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/WeaponItem.cpp#L218-L236)
+- [`AWeaponItem::Reload`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/WeaponItem.cpp#L53-L68)
+- [`AWeaponItem::MCPlaySoundandEffect_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/WeaponItem.cpp#L261-L268)
+- [`AWeaponItem::OnRep_CurrentMagSize`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/WeaponItem.cpp#L255-L259)
+
+**[Bullet.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/Bullet.h) · [Bullet.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/Bullet.cpp)**
+
+- [`ABullet::OnHit`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/Bullet.cpp#L123-L156)
+- [`ABullet::GetDamageMultiplier`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/Bullet.cpp#L83-L105)
+- [`ABullet::CalculateArmorDamage`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Items/Bullet.cpp#L107-L121)
+
+**[BRAnim.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/Animation/BRAnim.h) · [BRAnim.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/Animation/BRAnim.cpp)**
+
+- [`UBRAnim::AnimNotify_ThrowGrenade`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/Animation/BRAnim.cpp#L72-L78)
+- [`UBRAnim::AnimNotify_RifleReload`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/Animation/BRAnim.cpp#L80-L87)
+- [`UBRAnim::AnimNotify_PistolReload`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/Animation/BRAnim.cpp#L88-L95)
+- [`UBRAnim::AnimNotify_EquipWeapon`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/Animation/BRAnim.cpp#L97-L105)
 
 </details>
 
@@ -212,27 +240,43 @@ UBRAnim::AnimNotify_EquipWeapon
 <details>
 <summary>관련 코드 위치</summary>
 
-```text
-PP4/Vehicles/VehicleMovementComponent.h
-PP4/Vehicles/VehicleMovementComponent.cpp
-PP4/Vehicles/VehicleMovementReplicator.h
-PP4/Vehicles/VehicleMovementReplicator.cpp
-PP4/Character/BRCharacter.h
-PP4/Character/BRCharacter.cpp
+**[VehicleMovementComponent.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementComponent.h) · [VehicleMovementComponent.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementComponent.cpp)**
 
-UVehicleMovementComponent::CreateMove
-UVehicleMovementComponent::SimulateMove
-UVehicleMovementReplicator::Server_SendMove_Implementation
-UVehicleMovementReplicator::UpdateServerState
-UVehicleMovementReplicator::Local_OnRep
-UVehicleMovementReplicator::Simul_OnRep
-UVehicleMovementReplicator::CreateSpline
-UVehicleMovementReplicator::InterpolateLocation
-UVehicleMovementReplicator::InterpolateRotation
-UVehicleMovementReplicator::InterpolateVelocity
-ABRCharacter::ServerHandleRequestEnterVehicle
-ABRCharacter::ServerHandleExitingVehicle
-```
+- [`UVehicleMovementComponent::CreateMove`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementComponent.cpp#L29-L40)
+- [`UVehicleMovementComponent::TickComponent`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementComponent.cpp#L44-L59)
+- [`UVehicleMovementComponent::SimulateMove`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementComponent.cpp#L61-L86)
+
+**[VehicleMovementReplicator.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.h)**
+
+- [`FHermiteCubicSpline::InterpolateLocation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.h#L29-L32)
+- [`FHermiteCubicSpline::InterpolateDerivative`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.h#L33-L36)
+
+**[VehicleMovementReplicator.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp)**
+
+- [`UVehicleMovementReplicator::TickComponent`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L38-L88)
+- [`UVehicleMovementReplicator::Server_SendMove_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L260-L268)
+- [`UVehicleMovementReplicator::UpdateServerState`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L91-L98)
+- [`UVehicleMovementReplicator::GetLifetimeReplicatedProps`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L162-L166)
+- [`UVehicleMovementReplicator::OnRep_ServerState`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L179-L208)
+- [`UVehicleMovementReplicator::Local_OnRep`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L210-L239)
+- [`UVehicleMovementReplicator::Simul_OnRep`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L241-L258)
+- [`UVehicleMovementReplicator::ClientTick`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L99-L115)
+- [`UVehicleMovementReplicator::CreateSpline`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L116-L124)
+- [`UVehicleMovementReplicator::InterpolateLocation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L125-L135)
+- [`UVehicleMovementReplicator::InterpolateRotation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L142-L156)
+- [`UVehicleMovementReplicator::InterpolateVelocity`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/VehicleMovementReplicator.cpp#L136-L141)
+
+**[Vehicle.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/Vehicle.h) · [Vehicle.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/Vehicle.cpp)**
+
+- [`AVehicle::SetSeatOwner`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/Vehicle.cpp#L237-L257)
+- [`AVehicle::SERVERRequestExit_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Vehicles/Vehicle.cpp#L394-L397)
+
+**[BRCharacter.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.h) · [BRCharacter.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp)**
+
+- [`ABRCharacter::ServerHandleRequestEnterVehicle`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2847-L2877)
+- [`ABRCharacter::ServerHandleExitingVehicle`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2879-L2893)
+- [`ABRCharacter::MCPlayerInVehicle_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3622-L3633)
+- [`ABRCharacter::MCPlayerExitedVehicle_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3852-L3859)
 
 </details>
 
@@ -267,29 +311,49 @@ ABRCharacter::ServerHandleExitingVehicle
 <details>
 <summary>관련 코드 위치</summary>
 
-```text
-PP4/GameInfo.h
-PP4/Character/BRCharacter.h
-PP4/Character/BRCharacter.cpp
-PP4/Widget/Inventory/ItemWidget.h
-PP4/Widget/Inventory/ItemWidget.cpp
-PP4/Etc/InventorySystem/CharacterPreview.h
-PP4/Etc/InventorySystem/CharacterPreview.cpp
+**[GameInfo.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/GameInfo.h)**
 
-FPickupInfos
-FServerInventory
+- [`FPickupInfos`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/GameInfo.h#L201-L261)
+- [`FServerInventory`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/GameInfo.h#L265-L296)
 
-ABRCharacter::ServerAttemptPickupItem
-ABRCharacter::CanAddedInventory
-ABRCharacter::ClientInventoryDragDrop
-ABRCharacter::ServerEquipInventory
-ABRCharacter::ServerEquipInventoryMainSlot
-ABRCharacter::ServerDropInventoryItem
-ABRCharacter::HandleClothInfoChanged
-UItemWidget::NativeOnDrop
-UItemWidget::SwitchInfo
-ACharacterPreview::UpdateClothSlot
-```
+**[BRGameInstance.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.h)**
+
+- [`UBRGameInstance::GetItemData(FName)`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.h#L144-L148)
+- [`UBRGameInstance::GetItemData(FName, FString)`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Main/BRGameInstance.h#L149-L153)
+
+**[BRCharacter.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.h)**
+
+- [`ABRCharacter::GetNewUniqueID`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.h#L928-L928)
+
+**[BRCharacter.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp)**
+
+- [`ABRCharacter::ServerAttemptPickupItem`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L1473-L1651)
+- [`ABRCharacter::CanAddedInventory`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3041-L3048)
+- [`ABRCharacter::ClientInventoryDragDrop`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L1370-L1418)
+- [`ABRCharacter::ServerEquipInventory`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L1850-L1963)
+- [`ABRCharacter::ServerEquipInventoryMainSlot`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2020-L2065)
+- [`ABRCharacter::ServerDropInventoryItem`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L1751-L1786)
+- [`ABRCharacter::CLIENTAddNewInventoryItem_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3368-L3391)
+- [`ABRCharacter::CLIENTUpdateInventoryItemCount_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3360-L3366)
+- [`ABRCharacter::CLIENTPickupEquip_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3393-L3454)
+- [`ABRCharacter::ServerChangeSlot`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L1660-L1725)
+- [`ABRCharacter::OnPickupEquipChanged_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3049-L3061)
+- [`ABRCharacter::EquipSocket`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L1457-L1472)
+- [`ABRCharacter::SERVERClothInfo_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4019-L4063)
+- [`ABRCharacter::OnRep_ClothArmorHeadInfo`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4008-L4011)
+- [`ABRCharacter::OnRep_ClothArmorBodyInfo`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L4013-L4017)
+- [`ABRCharacter::HandleClothInfoChanged`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2912-L2920)
+- [`ABRCharacter::OnEquipUpdatePreviewCharacter`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2984-L3005)
+
+**[ItemWidget.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Inventory/ItemWidget.h) · [ItemWidget.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Inventory/ItemWidget.cpp)**
+
+- [`UItemWidget::NativeOnDrop`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Inventory/ItemWidget.cpp#L97-L118)
+- [`UItemWidget::SwitchInfo`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Inventory/ItemWidget.cpp#L167-L180)
+
+**[CharacterPreview.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Etc/InventorySystem/CharacterPreview.h) · [CharacterPreview.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Etc/InventorySystem/CharacterPreview.cpp)**
+
+- [`ACharacterPreview::UpdateClothSlot`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Etc/InventorySystem/CharacterPreview.cpp#L73-L115)
+- [`ACharacterPreview::WeaponEquip`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Etc/InventorySystem/CharacterPreview.cpp#L117-L184)
 
 </details>
 
@@ -320,28 +384,41 @@ ACharacterPreview::UpdateClothSlot
 <details>
 <summary>관련 코드 위치</summary>
 
-```text
-PP4/World/Zone.h
-PP4/World/Zone.cpp
-PP4/Widget/Minimap/MinimapComponent.h
-PP4/Widget/Minimap/MinimapComponent.cpp
-PP4/Character/BRCharacter.h
-PP4/Character/BRCharacter.cpp
-PP4/Etc/MiniMapActors/BigMapMarker.h
-PP4/Etc/MiniMapActors/BigMapMarker.cpp
+**[Zone.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.h) · [Zone.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp)**
 
-AZone::StartZone
-AZone::SetupStep
-AZone::GetNextPoint
-AZone::DamageTimer
-AZone::HandlePlayersInside
-UMinimapComponent::UpdatePOIs
-UMinimapComponent::NativePaint
-UMinimapComponent::OnMinimapClick
-ABRCharacter::OverviewMapClicked
-ABRCharacter::SERVERAddUpdateMarker_Implementation
-ABigMapMarker::BeginPlay
-```
+- [`AZone::StartZone`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L88-L113)
+- [`AZone::SetupStep`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L205-L216)
+- [`AZone::GetNextPoint`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L299-L317)
+- [`AZone::DelayedNextPoint`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L319-L324)
+- [`AZone::MCDoShrink_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L357-L366)
+- [`AZone::Tick`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L60-L86)
+- [`AZone::MCStopShrink_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L367-L376)
+- [`AZone::MCZoneStarted_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L377-L385)
+- [`AZone::MCZonePaused_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L387-L393)
+- [`AZone::DamageTimer`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L282-L297)
+- [`AZone::HandlePlayersInside`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/World/Zone.cpp#L218-L280)
+
+**[MinimapComponent.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.h) · [MinimapComponent.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp)**
+
+- [`UMinimapComponent::MinimapStartUpdate`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp#L284-L298)
+- [`UMinimapComponent::NativeTick`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp#L31-L59)
+- [`UMinimapComponent::AddPointInterest`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp#L542-L582)
+- [`UMinimapComponent::UpdatePOIs`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp#L356-L432)
+- [`UMinimapComponent::NativePaint`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp#L143-L162)
+- [`UMinimapComponent::MDrawCircle`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp#L531-L540)
+- [`UMinimapComponent::OnMinimapClick`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp#L475-L501)
+- [`UMinimapComponent::EValidateMinimapClick`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Widget/Minimap/MinimapComponent.cpp#L463-L473)
+
+**[BRCharacter.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.h) · [BRCharacter.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp)**
+
+- [`ABRCharacter::UpdateMinimapAndTeammates`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L1419-L1446)
+- [`ABRCharacter::OverviewMapClicked`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2659-L2691)
+- [`ABRCharacter::SERVERAddUpdateMarker_Implementation`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L3894-L3908)
+- [`ABRCharacter::AddReplicatedMarker`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Character/BRCharacter.cpp#L2434-L2438)
+
+**[BigMapMarker.h](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Etc/MiniMapActors/BigMapMarker.h) · [BigMapMarker.cpp](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Etc/MiniMapActors/BigMapMarker.cpp)**
+
+- [`ABigMapMarker::BeginPlay`](https://github.com/tjwjdah/Unreal5_Portfolio_BattleRoyale_multi/blob/e8c4522952ac898e828817e2e09bb9bfa201414a/Source/PP4/Etc/MiniMapActors/BigMapMarker.cpp#L15-L25)
 
 </details>
 
