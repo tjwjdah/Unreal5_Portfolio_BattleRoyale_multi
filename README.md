@@ -5,6 +5,16 @@
 
 ---
 
+## 시연 영상
+
+<a href="https://www.youtube.com/watch?v=j8nK3TK9Urw">
+  <img width="1936" height="1048" alt="image" src="https://github.com/user-attachments/assets/f8edda59-1ec0-4284-ad71-1e70db969c94" />
+</a>
+
+▶ [전체 시연 영상](https://youtu.be/VeI2WFhfKv0)
+
+---
+
 <a id="table-of-contents"></a>
 
 ## 목차
