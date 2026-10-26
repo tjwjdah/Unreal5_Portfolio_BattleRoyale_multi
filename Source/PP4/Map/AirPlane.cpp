@@ -54,27 +54,29 @@ void AAirPlane::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!AirPlaneGo || !HasAuthority())return;
+	if (!AirPlaneGo || !HasAuthority()) return;
 
 	FloatingPawnMovement->AddInputVector(UKismetMathLibrary::GetForwardVector(GetActorRotation()));
 
-	FVector Actor2D = FVector(GetActorLocation().X, GetActorLocation().Y, 0.0f);
-	FVector Destination2D = FVector(Destination.X, Destination.Y, 0.0f);
-	DistanceToDestination = abs(UKismetMathLibrary::VSize(Destination2D - Actor2D));
-	//비행기와 최종 목적지 사이의 거리 차이는 지도 크기에 따라 변경.
-	if (DistanceToDestination <= DistanceToDestinationToAllowJump) {
-		if (!DoOnce)return;
+	FVector Actor2D = FVector(GetActorLocation().X, GetActorLocation().Y, 0.f);
+	FVector Destination2D = FVector(Destination.X, Destination.Y, 0.f);
+	DistanceToDestination = UKismetMathLibrary::VSize(Destination2D - Actor2D);
+
+	if (DoOnce && DistanceToDestination <= DistanceToDestinationToAllowJump) {
 		DoOnce = false;
-		CV(APlaneGameMode,GameMode,UGameplayStatics::GetGameMode(GetWorld()));
+
+		CV(APlaneGameMode, GameMode, UGameplayStatics::GetGameMode(GetWorld()));
 		if (IsValid(GameMode))
 			GameMode->CanJumpOffPlane();
 	}
-	if (DistanceToDestination < ForcedJumpDistance) {
-		if (!DoOnce1)return;
+
+	if (DoOnce1 && DistanceToDestination < ForcedJumpDistance) {
 		DoOnce1 = false;
+
 		CV(APlaneGameMode, GameMode, UGameplayStatics::GetGameMode(GetWorld()));
 		if (IsValid(GameMode)) {
 			GameMode->FinalCheckpointReached();
+
 			FTimerHandle TimerHandle;
 			GetWorldTimerManager().SetTimer(TimerHandle, this, &AAirPlane::DestroyDelay, 10.f, false);
 		}

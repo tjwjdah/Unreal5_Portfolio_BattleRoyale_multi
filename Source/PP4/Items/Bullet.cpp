@@ -6,7 +6,7 @@
 #include "DamageTypes/FirearmDamage.h"
 
 #include "../Character/BRCharacter.h"
-
+#include "../Character/AI/AICharacter.h"
 #include "Sound/SoundCue.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -137,9 +137,14 @@ void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrim
 		}
 		else {
 			if (BRChar != OnwerChar && BaseDamage > 0.f && IsValid(OnwerChar)) {
-				CV(APickupItem, Item, Weapon);
-				if (IsValid(Item))
-					BRChar->DamageTaken(GetDamageMultiplier(Hit.BoneName, BRChar), Item->GetInfo().Name.ToString(), OnwerChar, true);
+				const float Damage = GetDamageMultiplier(Hit.BoneName, BRChar);
+
+				if (APickupItem* Item = Cast<APickupItem>(Weapon)) {
+					BRChar->DamageTaken(Damage, Item->GetInfo().Name.ToString(), OnwerChar, true);
+				}
+				else if (Cast<AAICharacter>(OnwerChar)) {
+					BRChar->DamageTaken(Damage, TEXT("AI"), OnwerChar, true);
+				}
 			}
 		}
 		FTimerHandle TimerHandle;

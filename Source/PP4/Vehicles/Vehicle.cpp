@@ -170,12 +170,10 @@ void AVehicle::PressedBrake()
 void AVehicle::ReleasedBrake()
 {
    
-    if (MovementComponent == nullptr) return;
+    if (!MovementComponent) return;
 
     MovementComponent->SetHandbrake(false);
-
-    return;
-   // GetVehicleMovement()->SetHandbrakeInput(false);
+    MovementComponent->SetBrake(0.f);
 
    
 }

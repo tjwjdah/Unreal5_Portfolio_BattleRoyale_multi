@@ -165,13 +165,25 @@ void UBRGameInstance::HostGame(APlayerController* _PlayerController, int32 _Publ
 				SessionSetting.Set(SERVER_NAME_SETTINGS_KEY, DesiredServerName, 
 					EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 				SessionSetting.Set(TEXT("CURRENT_PLAYERS"), 1, EOnlineDataAdvertisementType::ViaOnlineService);
-				PendingSessionSettings = SessionSetting;
-				PendingControllerId = _PlayerController->GetLocalPlayer()->GetControllerId();
+				int32 ControllerId = _PlayerController->GetLocalPlayer()->GetControllerId();
 				auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
-				if (ExistingSession != nullptr)
-					SessionInterface->DestroySession(SESSION_NAME);
-				else
-					CreateSessionInternal(PendingControllerId, SessionSetting);
+
+				if (ExistingSession != nullptr) {
+					PendingSessionSettings = SessionSetting;
+					PendingControllerId = ControllerId;
+					bRecreateSessionAfterDestroy = true;
+
+					if (!SessionInterface->DestroySession(SESSION_NAME)) {
+						bRecreateSessionAfterDestroy = false;
+						PendingSessionSettings.Reset();
+						UE_LOG(LogTemp, Warning, TEXT("Failed to start session destruction"));
+					}
+				}
+				else {
+					bRecreateSessionAfterDestroy = false;
+					PendingSessionSettings.Reset();
+					CreateSessionInternal(ControllerId, SessionSetting);
+				}
 			}
 		}
 	}
@@ -214,24 +226,34 @@ void UBRGameInstance::GoBackLobby()
 
 void UBRGameInstance::DestroySession()
 {
-	if (SessionInterface.IsValid())
-	{
-		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
-		if (ExistingSession != nullptr)
-		{
-			SessionInterface->DestroySession(SESSION_NAME);
-		}
-	}
+	bRecreateSessionAfterDestroy = false;
+	PendingSessionSettings.Reset();
+
+	if (!SessionInterface.IsValid()) return;
+
+	auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
+	if (ExistingSession != nullptr)
+		SessionInterface->DestroySession(SESSION_NAME);
 }
 
 void UBRGameInstance::OnDestroySessionComplete(FName SessionName, bool Success)
 {
-	if (Success && PendingSessionSettings.IsSet())
-	{
-		CreateSessionInternal(PendingControllerId, PendingSessionSettings.GetValue());
+	if (SessionName != SESSION_NAME) return;
+
+	const bool bShouldRecreate = bRecreateSessionAfterDestroy && PendingSessionSettings.IsSet();
+
+	bRecreateSessionAfterDestroy = false;
+
+	if (!Success || !bShouldRecreate) {
 		PendingSessionSettings.Reset();
+		return;
 	}
-	
+
+	const FOnlineSessionSettings Settings = PendingSessionSettings.GetValue();
+	const int32 ControllerId = PendingControllerId;
+
+	PendingSessionSettings.Reset();
+	CreateSessionInternal(ControllerId, Settings);
 }
 
 void UBRGameInstance::FindSession(APlayerController* _PlayerController,int32 _MaxResults,bool _UseLan)

@@ -58,6 +58,8 @@ private:
 	TEnumAsByte<ESlotType> ActiveWeaponSlot;
 
 	bool DoOnce;
+	FTimerHandle ReloadTimerHandle;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -91,6 +93,8 @@ public:
 	float GetFireInterval() { return FireInterval; }
 
 	bool GetIsAllInZone() { return IsAllInZone; }
+
+	void FinishReload();
 public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MCFireWeapon();

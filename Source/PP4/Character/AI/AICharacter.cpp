@@ -124,11 +124,18 @@ void AAICharacter::OnInOutZone(bool _In)
 
 void AAICharacter::SpawnProjectile(FVector _Dest)
 {
-	FActorSpawnParameters	param;
-	param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::Undefined;
-	ABullet* Bullet = GetWorld()->SpawnActor<ABullet>(ABullet::StaticClass(),
-		WeaponSkeletalMesh->GetSocketLocation(TEXT("Muzzle")), UKismetMathLibrary::FindLookAtRotation(WeaponSkeletalMesh->GetSocketLocation(TEXT("Muzzle")), _Dest), param);
-	Bullet->SetOwner(this);
+	if (!HasAuthority() || !IsValid(WeaponSkeletalMesh)) return;
+
+	FVector Start = WeaponSkeletalMesh->GetSocketLocation(TEXT("Muzzle"));
+	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(Start, _Dest);
+	FTransform SpawnTransform(Rotation, Start);
+
+	ABullet* Bullet = GetWorld()->SpawnActorDeferred<ABullet>(ABullet::StaticClass(), SpawnTransform, this, this,ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+	if (!IsValid(Bullet)) return;
+
+	Bullet->SetBaseDamage(WeaponDamage);
+	Bullet->FinishSpawning(SpawnTransform);
 }
 
 void AAICharacter::FireWeapon()
@@ -139,31 +146,30 @@ void AAICharacter::FireWeapon()
 		Reload();
 		return;
 	}
+	CV(ABRAIController, Cont, GetController());
+	if (!IsValid(Cont) || !IsValid(Cont->GetCurrentTarget())) return;
 	ShotFired++;
 	MCFireWeapon();
-	CV(ABRAIController, Cont, GetController());
-	if (IsValid(Cont) && IsValid(Cont->GetCurrentTarget()))
-	{
-		FHitResult OutHit;
-		FVector Start = GetMesh()->GetSocketLocation(TEXT("head"));
-		FVector End = Cont->GetCurrentTarget()->GetMesh()->GetSocketLocation(TEXT("spine_03"));
-		float Radius = 20.0f;
 
-		FCollisionQueryParams QueryParams;
-		QueryParams.bTraceComplex = false;
-		QueryParams.AddIgnoredActor(this); 
+	FHitResult OutHit;
+	FVector Start = GetMesh()->GetSocketLocation(TEXT("head"));
+	FVector End = Cont->GetCurrentTarget()->GetMesh()->GetSocketLocation(TEXT("spine_03"));
+	float Radius = 20.0f;
 
-		bool bHit = GetWorld()->SweepSingleByChannel(
-			OutHit,
-			Start,
-			End,
-			FQuat::Identity,
-			ECC_Visibility,
-			FCollisionShape::MakeSphere(Radius),
-			QueryParams
-		);
-		SpawnProjectile(OutHit.TraceEnd);
-	}
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex = false;
+	QueryParams.AddIgnoredActor(this); 
+
+	bool bHit = GetWorld()->SweepSingleByChannel(
+		OutHit,
+		Start,
+		End,
+		FQuat::Identity,
+		ECC_Visibility,
+		FCollisionShape::MakeSphere(Radius),
+		QueryParams
+	);
+	SpawnProjectile(OutHit.TraceEnd);
 	if (ShotFired >= MaxShots)
 		Reload();
 }
@@ -185,9 +191,23 @@ void AAICharacter::MCFireWeapon_Implementation()
 }
 void AAICharacter::Reload()
 {
+	if (!HasAuthority() || Reloading || !IsAlive()) return;
+
 	Reloading = true;
 	MCReload();
+
+	float ReloadTime = IsValid(ReloadMontage) ? ReloadMontage->GetPlayLength() : 2.f;
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle, this, &AAICharacter::FinishReload, FMath::Max(0.1f, ReloadTime), false);
 	
+}
+
+void AAICharacter::FinishReload()
+{
+	if (!HasAuthority() || !IsAlive()) return;
+
+	ShotFired = 0;
+	Reloading = false;
+
 }
 
 void AAICharacter::MCCharacterHit_Implementation(FVector _Location, bool _CharacterHit)
@@ -200,9 +220,8 @@ void AAICharacter::MCCharacterHit_Implementation(FVector _Location, bool _Charac
 
 void AAICharacter::MCReload_Implementation()
 {
+	if (!IsValid(ReloadMontage) || !IsValid(GetMesh()) || !IsValid(GetMesh()->GetAnimInstance())) return;
 	GetMesh()->GetAnimInstance()->Montage_Play(ReloadMontage);
-	Reloading = false;
-	ShotFired = 0;
 }
 
 

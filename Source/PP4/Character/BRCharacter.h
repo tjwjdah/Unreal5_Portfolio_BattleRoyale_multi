@@ -417,6 +417,12 @@ private:
 	bool bEquipMontageOn;
 	bool bBeginPlay;
 
+	TWeakObjectPtr<ABRCharacter> ServerReviveTarget;
+	TWeakObjectPtr<ABRCharacter> ServerReviver;
+
+	float ServerReviveStartTime = -1.f;
+	FTimerHandle ServerReviveTimerHandle;
+
 protected:
 	// Called when the game starts or when spawned
 
@@ -809,10 +815,10 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void SERVERUseItem(int32 _ServerID);
-
+	/*
 	UFUNCTION(Server, Reliable)
 	void SERVEROnReviveDone(ABRCharacter* _RevivingPlayer);
-
+	*/
 
 	//Client
 
@@ -933,6 +939,13 @@ public:
 	
 	ACharacterPreview* GetPrevCharacter() { return PrevCharacter; }
 
+
+	void RefreshWeaponAmmoHUD(AWeaponItem* _Weapon);
+
+
+	bool CanReviveTarget(ABRCharacter* Target);
+	void CancelServerRevive();
+	void UpdateServerRevive();
 private:
 	UFUNCTION()
 	void OnRep_ClothHeadWearInfo();
@@ -999,8 +1012,7 @@ private:
 
 	void HandleRepHealthChanged();
 
-	UFUNCTION(Server, Reliable)
-	void SERVERRepHealth(float _Health);
+	void UpdateRepHealth();
 
 	UFUNCTION()
 	void OnRep_KillCount();
@@ -1027,4 +1039,8 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void SERVERJumpingOffPlane(bool _JumpingOffPlane);
+
+
+	UFUNCTION(Client, Reliable)
+	void CLIENTCancelRevive();
 };

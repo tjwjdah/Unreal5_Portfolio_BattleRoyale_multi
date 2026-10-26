@@ -142,6 +142,7 @@ void ABRGameState::AddAIController(AController* _Controller)
 }
 bool ABRGameState::GameStarted()
 {
+
 	return  GameStatus == EGameStatus::Started;
 }
 void ABRGameState::RemoveAIController(AController* _Controller)

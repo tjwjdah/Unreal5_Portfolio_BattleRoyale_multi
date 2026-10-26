@@ -20,8 +20,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TEnumAsByte<EAmmoType> AmmoType;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"), Replicated)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"), ReplicatedUsing = OnRep_CurrentMagSize)
 	int32 CurrentMagSize;
+
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int32 MaxMagSize;
@@ -151,8 +152,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void SERVERSetWeaponOwner(ABRCharacter* _Char);
 	
-	UFUNCTION(Server, Reliable)
-	void SERVERSetReady(bool _Ready);
+	UFUNCTION()
+	void OnRep_CurrentMagSize();
 
 protected:
 	virtual void MCPlaySoundandEffect_Implementation();

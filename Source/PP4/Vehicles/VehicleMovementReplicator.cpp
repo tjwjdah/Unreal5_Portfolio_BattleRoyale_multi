@@ -41,7 +41,7 @@ void UVehicleMovementReplicator::TickComponent(float DeltaTime, ELevelTick TickT
 		Owner = Cast<AVehicle>(GetOwner());
 	if (!IsValid(Owner)) return;
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	return;
+	
 	if (MovementComponent == nullptr) return;
 	
 	FVehicleMove LastMove = MovementComponent->GetLastMove();
@@ -75,7 +75,7 @@ void UVehicleMovementReplicator::TickComponent(float DeltaTime, ELevelTick TickT
 	case ROLE_Authority:
 		if (Owner->IsLocallyControlled()) // 리슨 서버가 자기 폰을 직접 조종
 		{
-			MovementComponent->SimulateMove(LastMove); // 서버에서 실제 이동 적용
+			//MovementComponent->SimulateMove(LastMove); // 서버에서 실제 이동 적용
 			UpdateServerState(LastMove);               // 복제 상태 갱신
 		}
 		break;
@@ -91,11 +91,9 @@ void UVehicleMovementReplicator::TickComponent(float DeltaTime, ELevelTick TickT
 void UVehicleMovementReplicator::UpdateServerState(const FVehicleMove& Move)
 {
 	FVCState S;
-	
 	S.LastMove = Move;
 	S.Tranform = Owner->GetActorTransform();
 	S.Velocity = Owner->GetVelocity();
-
 	ServerState = S;
 }
 void UVehicleMovementReplicator::ClientTick(float DeltaTime)

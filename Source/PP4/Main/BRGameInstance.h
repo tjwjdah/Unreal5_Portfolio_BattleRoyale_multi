@@ -83,6 +83,7 @@ private:
 	TOptional<FOnlineSessionSettings> PendingSessionSettings;
 	int32 PendingControllerId;
 
+	bool bRecreateSessionAfterDestroy = false;
 public:
 	virtual void Init() override;
 

@@ -49,7 +49,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
+	void SetBaseDamage(float _Damage) { BaseDamage = FMath::Max(0.f, _Damage); }
 	
 	void SetWeapon(UObject* _Weapon) { Weapon = _Weapon; }
 

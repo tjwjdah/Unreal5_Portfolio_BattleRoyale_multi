@@ -18,7 +18,7 @@ UEngageTarget::~UEngageTarget()
 
 EBTNodeResult::Type UEngageTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	return EBTNodeResult::Type();
+	
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	if (!IsValid(AIController)) return EBTNodeResult::Succeeded;
 	AIController->StopMovement();

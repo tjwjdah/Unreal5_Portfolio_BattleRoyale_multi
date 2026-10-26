@@ -352,20 +352,29 @@ void ABRGameMode::HandleTeamWinCondition()
 void ABRGameMode::HandleSoloWinCondition()
 {
 	CV(ABRGameState, State, GameState);
-	
-	if (State->GetPlayerLength() == 1) {
-		const TArray<APlayerController*>& PlayerList = State->GetPlayerList();
-		ABRPlayerController* Controller = Cast<ABRPlayerController>(PlayerList[0]);
-		Controller->GameEnded(1);
-		ABRCharacter* Character = Cast<ABRCharacter>(Controller->GetPawn());
-		if (!Character)return;
-		Character->ClientYouWin();
-		GameEnded();
+	if (!IsValid(State)) return;
+	if (State->GetGameStatus() == EGameStatus::Ended) return;
+
+	const int32 AliveCount = State->GetPlayerLength();
+	if (AliveCount > 1) return;
+
+	if (AliveCount == 1 && State->GetAIPlayersCount() == 0) {
+		const auto& PlayerList = State->GetPlayerList();
+
+		if (PlayerList.Num() == 1) {
+			ABRPlayerController* Controller = Cast<ABRPlayerController>(PlayerList[0]);
+
+			if (IsValid(Controller)) {
+				Controller->GameEnded(1);
+
+				ABRCharacter* Character = Cast<ABRCharacter>(Controller->GetPawn());
+				if (IsValid(Character))
+					Character->ClientYouWin();
+			}
+		}
 	}
-	else {
-		if (State->GetPlayerLength() == 0)
-			GameEnded();
-	}
+
+	GameEnded();
 }
 
 FTransform ABRGameMode::GetRandomSpawnLocation_Arena()

@@ -327,10 +327,7 @@ void ABRCharacter::EventOnDropConsumables(ESlotType _ContainerRecType, int32 _Re
 
 void ABRCharacter::OnReviveProgressDone()
 {
-	if (IsValid(RevivingPlayer) && RevivingPlayer->IsPlayerDown) {
-		SERVEROnReviveDone(RevivingPlayer);
-		RevivingPlayer = nullptr;
-	}
+	RevivingPlayer = nullptr;
 }
 
 void ABRCharacter::WidgetSetPlayerID()
@@ -430,9 +427,6 @@ void ABRCharacter::Tick(float DeltaTime)
 		CameraBoom->SetWorldRotation(FMath::RInterpTo(CameraBoom->GetComponentRotation(), GetActorRotation(), DeltaTime, 25.f));
 	}
 	
-	if (RepHealth != PlayerInfo.Health) {
-		SERVERRepHealth(PlayerInfo.Health);
-	}
 
 }
 
@@ -528,6 +522,13 @@ void ABRCharacter::OnTakeAnyDamageHandler(AActor* DamagedActor, float Damage, co
 
 void ABRCharacter::Destroyed()
 {
+	if (HasAuthority()) {
+		if (ServerReviveTarget.IsValid())
+			CancelServerRevive();
+
+		if (ServerReviver.IsValid())
+			ServerReviver->CancelServerRevive();
+	}
 	Super::Destroyed();
 	if (HasAuthority()) {
 		CV(ABRGameMode, GameMode, UGameplayStatics::GetGameMode(GetWorld()));
@@ -1749,27 +1750,37 @@ AActor* ABRCharacter::GetWeaponSlot(ESlotType _Slot)
 
 void ABRCharacter::ServerDropInventoryItem(int32 _UniqueID, int32 _Count)
 {
-	bool AllDropped;
-	int32 CurrentIndex;
+	if (_Count <= 0) return;
+
+	bool AllDropped = false;
+	int32 CurrentIndex = INDEX_NONE;
+
 	for (int32 i = 0; i < ServerInventoryItems.Num(); i++) {
 		if (ServerInventoryItems[i].ServerUniqueID != _UniqueID) continue;
-		if (ServerInventoryItems[i].Count < _Count)return;
+		if (ServerInventoryItems[i].Count < _Count) return;
+
 		CurrentIndex = i;
 		ServerInventoryItems[i].Count -= _Count;
 		SERVERTotalAmmo(ServerInventoryItems[i].Type, ServerInventoryItems[i].Count);
 		SERVERTotalGrenades(ServerInventoryItems[i].ID, ServerInventoryItems[i].Type, ServerInventoryItems[i].Count);
-		SpawnPickup(ServerInventoryItems[i].PickupClass, ServerInventoryItems[i].Count);
+		SpawnPickup(ServerInventoryItems[i].PickupClass, _Count);
 		AllDropped = ServerInventoryItems[i].Count == 0;
-		CurrentInventoryCapacity -= (ServerInventoryItems[i].Count * ServerInventoryItems[i].Weight);
+		CurrentInventoryCapacity -= _Count * ServerInventoryItems[i].Weight;
 		CLIENTUpdateInventoryItemCount(_UniqueID, ServerInventoryItems[i].Count, CurrentInventoryCapacity);
 		break;
 	}
-	if (!AllDropped)return;
-	//현재 수류탄을 장착한 상태에서 인벤토리의 모든 수류탄을 버리면 더 이상 수류탄을 사용할 수 없으므로 활성 슬롯을 None으로 설정
+
+	if (CurrentIndex == INDEX_NONE || !AllDropped) return;
+
+	const bool bDroppedActiveGrenade = ServerInventoryItems[CurrentIndex].Type == CurrentActiveExplosiveSlot;
+
 	ServerInventoryItems.RemoveAt(CurrentIndex);
-	if (PlayerInfo.ActiveSlot != ESlotType::Explosives)return;
+
+	if (PlayerInfo.ActiveSlot != ESlotType::Explosives || !bDroppedActiveGrenade) return;
+
 	if (IsValid(PlayerInfo.Explosive)) {
-	PlayerInfo.Explosive->Destroy();
+		PlayerInfo.Explosive->Destroy();
+		PlayerInfo.Explosive = nullptr;
 	}
 	MCActiveSlotChanged(ESlotType::Inventory);
 }
@@ -1987,13 +1998,13 @@ void ABRCharacter::ServerSwapPrimarySecondary()
 	AActor* SecondaryWeapon = GetWeaponSlot(ESlotType::Secondary);
 	if (IsValid(PrimaryWeapon) && PlayerInfo.ActiveSlot != ESlotType::Primary) {
 		CV(APickupItem, Pickup, PrimaryWeapon);
-		if (Pickup)return;
+		if (!Pickup)return;
 		auto& PriInfo = Pickup->GetInfo();
 		OnPickupEquipChanged(true, PrimaryWeapon, PriInfo.UnEquipSocket2, true, false);
 	}
 	if (IsValid(SecondaryWeapon) && PlayerInfo.ActiveSlot != ESlotType::Secondary) {
 		CV(APickupItem, Pickup, SecondaryWeapon);
-		if (Pickup)return;
+		if (!Pickup)return;
 		auto& SecondInfo = Pickup->GetInfo();
 		OnPickupEquipChanged(true, SecondaryWeapon, SecondInfo.UnEquipSocket, true, false);
 	}
@@ -2179,8 +2190,7 @@ void ABRCharacter::DamageTaken(float _Damage, FString _Name, ACharacter* _Player
 			float NewHealth = PlayerInfo.Health - _Damage > 0.f ? PlayerInfo.Health - _Damage : 0.f;
 			if (NewHealth <= 0.f)
 			{
-				CV(ABRPlayerController, Cont, UGameplayStatics::GetPlayerController(GetWorld(), 0));
-				if (Cont->HasTeammates() && !IsPlayerDown) {
+				if (IsValid(ControllerRef) && ControllerRef->HasTeammates() && !IsPlayerDown) {
 					OnServerPlayerDown();
 					return;
 				}
@@ -2188,7 +2198,7 @@ void ABRCharacter::DamageTaken(float _Damage, FString _Name, ACharacter* _Player
 			
 			PlayerInfo.Alive = (NewHealth>0.f);
 			PlayerInfo.Health = NewHealth;
-			SERVERRepHealth(PlayerInfo.Health);
+			UpdateRepHealth();
 			CLIENTUpdateHealth(PlayerInfo.Health, PlayerInfo.WaterPercent, PlayerInfo.BoostPercent);
 			if (!PlayerInfo.Alive) {
 				CV(ABRGameMode, GameMode, UGameplayStatics::GetGameMode(GetWorld()));
@@ -2241,42 +2251,51 @@ void ABRCharacter::ServerInventoryExplosiveUsed(FName _ID)
 
 void ABRCharacter::ServerUseConsumable(int32 _UniqueServerID)
 {
-	if (_UniqueServerID == -1 || !PlayerInfo.Alive)return;
-	int32 Index;
-	int32 Count;
+	if (_UniqueServerID == -1 || !PlayerInfo.Alive) return;
+
+	int32 Index = INDEX_NONE;
+	int32 Count = -1;
+
 	for (int32 i = 0; i < ServerInventoryItems.Num(); i++) {
+		if (ServerInventoryItems[i].ServerUniqueID != _UniqueServerID) continue;
+
 		Index = i;
-		if (ServerInventoryItems[i].ServerUniqueID != _UniqueServerID)continue;
+		if (ServerInventoryItems[i].Count <= 0) return;
+
 		if (((ServerInventoryItems[i].Type == EPickupType::HealingItem1 || ServerInventoryItems[i].Type == EPickupType::HealingItem2) && PlayerInfo.Health < 100.f) ||
 			(ServerInventoryItems[i].Type == EPickupType::HealingItem3 && PlayerInfo.WaterPercent < 100.f) ||
 			(ServerInventoryItems[i].Type == EPickupType::HealingItem4 && PlayerInfo.BoostPercent < 100.f))
 		{
 			Count = ServerInventoryItems[i].Count - 1;
+
 			if (ServerInventoryItems[i].Type == EPickupType::HealingItem1 || ServerInventoryItems[i].Type == EPickupType::HealingItem2) {
-				PlayerInfo.Health = (ServerInventoryItems[i].Healing + PlayerInfo.Health) > 100.f ? 100.f : ServerInventoryItems[i].Healing + PlayerInfo.Health;
-				SERVERRepHealth(PlayerInfo.Health);
+				PlayerInfo.Health = FMath::Min(100.f, PlayerInfo.Health + ServerInventoryItems[i].Healing);
+				UpdateRepHealth();
+			}
+			else if (ServerInventoryItems[i].Type == EPickupType::HealingItem3) {
+				PlayerInfo.WaterPercent = FMath::Min(100.f, PlayerInfo.WaterPercent + ServerInventoryItems[i].Healing);
 			}
 			else {
-				if(ServerInventoryItems[i].Type==EPickupType::HealingItem3)
-					PlayerInfo.WaterPercent = (ServerInventoryItems[i].Healing + PlayerInfo.WaterPercent) > 100.f ? 100.f : ServerInventoryItems[i].Healing + PlayerInfo.WaterPercent;
-				else
-					PlayerInfo.BoostPercent = (ServerInventoryItems[i].Healing + PlayerInfo.BoostPercent) > 100.f ? 100.f : ServerInventoryItems[i].Healing + PlayerInfo.BoostPercent;
+				PlayerInfo.BoostPercent = FMath::Min(100.f, PlayerInfo.BoostPercent + ServerInventoryItems[i].Healing);
 			}
+
 			CLIENTUpdateHealth(PlayerInfo.Health, PlayerInfo.WaterPercent, PlayerInfo.BoostPercent);
 			break;
 		}
-		else
+		else {
 			return;
-	}
-	if (Count >= 0) {
-		ServerInventoryItems[Index].Count = Count;
-		CurrentInventoryCapacity -= ServerInventoryItems[Index].Weight;
-		CLIENTUpdateInventoryItemCount(_UniqueServerID, Count, CurrentInventoryCapacity);
-		if (Count == 0)
-		{
-			ServerInventoryItems.RemoveAt(Index);
-			CLIENTConsumableClearSlot();
 		}
+	}
+
+	if (Index == INDEX_NONE || Count < 0) return;
+
+	ServerInventoryItems[Index].Count = Count;
+	CurrentInventoryCapacity -= ServerInventoryItems[Index].Weight;
+	CLIENTUpdateInventoryItemCount(_UniqueServerID, Count, CurrentInventoryCapacity);
+
+	if (Count == 0) {
+		ServerInventoryItems.RemoveAt(Index);
+		CLIENTConsumableClearSlot();
 	}
 }
 
@@ -2300,6 +2319,7 @@ void ABRCharacter::OnServerPlayerDown()
 {
 	PlayerInfo.Alive = true;
 	PlayerInfo.Health = 100.f;
+	UpdateRepHealth();
 	SERVERIsPlayerDown(true);
 	CLIENTUpdateHealth(PlayerInfo.Health, PlayerInfo.WaterPercent, PlayerInfo.BoostPercent);
 
@@ -2378,9 +2398,8 @@ void ABRCharacter::WeaponFire(AWeaponItem* _Weapon, bool _Loop)
 	_Weapon->PlayCamShake();
 	if (_Weapon->CanFire())
 	{
-		if (!IsListenServer())
-			_Weapon->SetCurrentMagSize(_Weapon->GetCurrentMagSize() - 1);
-		InGameWidget->UpdateAmmoCount(_Weapon->GetCurrentMagSize(), GetTotalAmmoCountAmmoType(_Weapon->GetAmmoType()));
+		if (IsValid(InGameWidget))
+			InGameWidget->UpdateAmmoCount(_Weapon->GetCurrentMagSize(), GetTotalAmmoCountAmmoType(_Weapon->GetAmmoType()));
 		if (_Loop && _Weapon->GetCurrentMagSize() > 0) {
 			FTimerHandle TimerHandle;
 			GetWorldTimerManager().SetTimer(
@@ -2464,6 +2483,7 @@ void ABRCharacter::HandleWaterDepletionAndBoost()
 		else {
 			PlayerInfo.Health = PlayerInfo.Health < 100.f ? PlayerInfo.Health + 1 : 100.f;
 		}
+		UpdateRepHealth();
 		CLIENTUpdateHealth(PlayerInfo.Health, PlayerInfo.WaterPercent, PlayerInfo.BoostPercent);
 	}
 	else {
@@ -3123,6 +3143,7 @@ void ABRCharacter::GameStarted(bool _InPlane)
 		IsVehicleDriver = false;
 	}
 	PlayerInfo.Health = 100.f;
+	if (HasAuthority()) UpdateRepHealth();
 	PlayerInfo.ActiveSlot = ESlotType::Inventory;
 	PlayerInfo.Movement = _InPlane ? EMovementState::InPlane : EMovementState::Moving;
 	PlayerInfo.BackpackLV = 0;
@@ -3468,21 +3489,26 @@ void ABRCharacter::CLIENTEquipWeaponDrop_Implementation(ESlotType _Slot)
 
 void ABRCharacter::CLIENTPrimarySecondarySwapped_Implementation(AActor* _Primary, AActor* _Secondary, ESlotType _Slot)
 {
-	if (!IsValid(_Primary))
+	PlayerInfo.PrimaryWeapon = _Primary;
+	PlayerInfo.SecondaryWeapon = _Secondary;
+	if (!IsValid(_Primary)) {
 		GetContainerSlot(ESlotType::Primary)->ClearSlot(0);
+		GetInfoContainerSlot(ESlotType::Primary)->ClearSlot(0);
+	}
 	else
 	{
-		PlayerInfo.PrimaryWeapon = _Primary;
+		
 		CV(APickupItem, Item, PlayerInfo.PrimaryWeapon);
 		auto& Info = Item->GetInfo();
 		MyInventory->PickupEquip(ESlotType::Primary, Info);
 		EquipInfoW->PickupEquip(ESlotType::Primary, Info);
 	}
-	if (!IsValid(_Secondary))
+	if (!IsValid(_Secondary)) {
 		GetContainerSlot(ESlotType::Secondary)->ClearSlot(0);
+		GetInfoContainerSlot(ESlotType::Secondary)->ClearSlot(0);
+	}
 	else
 	{
-		PlayerInfo.SecondaryWeapon = _Secondary;
 		CV(APickupItem, Item, PlayerInfo.SecondaryWeapon);
 		auto& Info = Item->GetInfo();
 		MyInventory->PickupEquip(ESlotType::Secondary, Info);
@@ -3567,13 +3593,21 @@ void ABRCharacter::SERVERRequestOpenParachute_Implementation()
 		MCOpenParachute();
 }
 
-
+/*
 void ABRCharacter::SERVEROnReviveDone_Implementation(ABRCharacter* _RevivingPlayer)
 {
+	if (ServerReviveTarget.Get() != _RevivingPlayer) return;
+	if (!CanReviveTarget(_RevivingPlayer)) return;
+	if (!_RevivingPlayer->BeingRevived) return;
+	if (ServerReviveStartTime < 0.f) return;
+
+	const float Elapsed = GetWorld()->GetTimeSeconds() - ServerReviveStartTime;
+	if (Elapsed < ReviveDuration) return;
+
 	if (IsValid(_RevivingPlayer))
 		_RevivingPlayer->ServerOnReviveDone();
 }
-
+*/
 
 void ABRCharacter::CLIENTGameStarted_Implementation(bool _InPlane)
 {
@@ -3772,13 +3806,13 @@ void ABRCharacter::CLIENTFireStopUpdateAmmo_Implementation(int32 _Ammo)
 
 void ABRCharacter::ClientFireStopUpdateAmmo(int32 _Ammo)
 {
+	if (!IsLocallyControlled() || !IsValid(InGameWidget)) return;
+
 	AActor* Weapon = GetWeaponSlot(PlayerInfo.ActiveSlot);
 	CV(AWeaponItem, Item, Weapon);
-	if(!IsValid(Item))return;
-	Item->SetCurrentMagSize(_Ammo);
-	if (!IsValid(InGameWidget))return;
-	InGameWidget->UpdateAmmoCount(GetWeaponAmmoCurrentMagSize(), GetWeaponAmmoTotal());
+	if (!IsValid(Item)) return;
 
+	InGameWidget->UpdateAmmoCount(FMath::Max(0, _Ammo), GetWeaponAmmoTotal());
 }
 void ABRCharacter::CLIENTPlayerInZoneStatus_Implementation(bool _InZone)
 {
@@ -3891,6 +3925,50 @@ void ABRCharacter::ServerPunchConnect(ACharacter* _Char, FVector _Location)
 	}
 }
 //OnRep
+
+bool ABRCharacter::CanReviveTarget(ABRCharacter* Target)
+{
+	if (!HasAuthority() || !IsValid(Target) || Target == this) return false;
+	if (!PlayerInfo.Alive || IsPlayerDown) return false;
+	if (!Target->PlayerInfo.Alive || !Target->IsPlayerDown) return false;
+	if (PlayerInfo.Movement != EMovementState::Moving) return false;
+	if (TeamID < 0 || TeamID != Target->TeamID) return false;
+
+	float ReviveMaxDistance = 350.f;
+	return FVector::DistSquared(GetActorLocation(), Target->GetActorLocation()) <= FMath::Square(ReviveMaxDistance);
+}
+
+void ABRCharacter::CancelServerRevive()
+{
+	GetWorldTimerManager().ClearTimer(ServerReviveTimerHandle);
+
+	ABRCharacter* Target = ServerReviveTarget.Get();
+	ServerReviveTarget.Reset();
+	ServerReviveStartTime = -1.f;
+
+	if (IsValid(Target) && Target->ServerReviver.Get() == this) {
+		Target->ServerReviver.Reset();
+		Target->BeingRevived = false;
+		Target->HandleBeingRevivedChanged();
+	}
+
+	CLIENTCancelRevive();
+}
+
+void ABRCharacter::UpdateServerRevive()
+{
+	ABRCharacter* Target = ServerReviveTarget.Get();
+
+	if (!CanReviveTarget(Target) || Target->ServerReviver.Get() != this) {
+		CancelServerRevive();
+		return;
+	}
+
+	if (GetWorld()->GetTimeSeconds() - ServerReviveStartTime < ReviveDuration) return;
+
+	CancelServerRevive();
+	Target->ServerOnReviveDone();
+}
 
 void ABRCharacter::OnRep_ClothHeadWearInfo()
 {
@@ -4049,17 +4127,28 @@ void ABRCharacter::HandleTotalGrenadesChanged()
 void ABRCharacter::SERVERTotalGrenades_Implementation(FName _GID, EPickupType _Type, int32 _NewCount)
 {
 	if (!HasAuthority()) return;
-	
-	if (_Type == EPickupType::FragGrenade)
+
+	switch (_Type) {
+	case EPickupType::FragGrenade:
 		TotalGrenades.FragGrenade = _NewCount;
-	else if(_Type == EPickupType::SmokeGrenade)
+		if (!_GID.IsNone()) TotalGrenades.FragGID = _GID;
+		break;
+
+	case EPickupType::SmokeGrenade:
 		TotalGrenades.SmokeGrenade = _NewCount;
-	else if(_Type == EPickupType::StunGrenade)
+		if (!_GID.IsNone()) TotalGrenades.SmokeGID = _GID;
+		break;
+
+	case EPickupType::StunGrenade:
 		TotalGrenades.StunGrenade = _NewCount;
-	if (_GID != TEXT(""))
-		TotalGrenades.FragGID = _GID;
-		HandleTotalGrenadesChanged();
-	
+		if (!_GID.IsNone()) TotalGrenades.StunGID = _GID;
+		break;
+
+	default:
+		return;
+	}
+
+	HandleTotalGrenadesChanged();
 }
 
 void ABRCharacter::OnRep_IsPlayerDown()
@@ -4108,18 +4197,38 @@ void ABRCharacter::HandleBeingRevivedChanged()
 }
 void ABRCharacter::SERVERBeingRevived_Implementation(ABRCharacter* _Character, bool _Reviving)
 {
+	if (!HasAuthority()) return;
 
-	if (IsValid(_Character)) {
-		_Character->BeingRevived = _Reviving;
-		_Character->HandleBeingRevivedChanged();
+	if (!_Reviving) {
+		if (ServerReviveTarget.Get() == _Character)
+			CancelServerRevive();
+		return;
 	}
+
+	if (!CanReviveTarget(_Character)) {
+		CLIENTCancelRevive();
+		return;
+	}
+
+	if (ServerReviveTarget.IsValid() || _Character->ServerReviver.IsValid() || _Character->BeingRevived) {
+		CLIENTCancelRevive();
+		return;
+	}
+
+	ServerReviveTarget = _Character;
+	ServerReviveStartTime = GetWorld()->GetTimeSeconds();
+
+	_Character->ServerReviver = this;
+	_Character->BeingRevived = true;
+	_Character->HandleBeingRevivedChanged();
+
+	GetWorldTimerManager().SetTimer(ServerReviveTimerHandle, this, &ABRCharacter::UpdateServerRevive, 0.1f, true);
 }
 
 
 void ABRCharacter::ServerOnReviveDone()
 {
-	if (!IsPlayerDown)return;
-	SERVERBeingRevived(this, false);
+	if (!HasAuthority() || !IsPlayerDown) return;
 	SERVERIsPlayerDown(false);
 }
 
@@ -4135,6 +4244,14 @@ void ABRCharacter::HandleRepHealthChanged()
 	PlayerInfo.Health = RepHealth;
 }
 
+void ABRCharacter::UpdateRepHealth()
+{
+	if (!HasAuthority()) return;
+	if (FMath::IsNearlyEqual(RepHealth, PlayerInfo.Health)) return;
+
+	RepHealth = PlayerInfo.Health;
+}
+/*
 void ABRCharacter::SERVERRepHealth_Implementation(float _Health)
 {
 	if (!HasAuthority()) return;
@@ -4143,7 +4260,7 @@ void ABRCharacter::SERVERRepHealth_Implementation(float _Health)
 	RepHealth = _Health;
 	HandleRepHealthChanged();
 }
-
+*/
 void ABRCharacter::OnRep_KillCount()
 {
 	HandleKillCountChanged();
@@ -4218,6 +4335,22 @@ void ABRCharacter::HandleJumpingOffPlaneChanged()
 	{
 		GetWorldTimerManager().SetTimer(OffPlaneTraceGroundHandle, this, &ABRCharacter::OffPlaneTraceGround, 1.0f, true);
 	}
+}
+
+void ABRCharacter::CLIENTCancelRevive_Implementation()
+{
+	if (IsValid(InGameWidget))
+		InGameWidget->StopRevive();
+
+	RevivingPlayer = nullptr;
+}
+
+void ABRCharacter::RefreshWeaponAmmoHUD(AWeaponItem* _Weapon)
+{
+	if (!IsLocallyControlled() || !IsValid(InGameWidget) || !IsValid(_Weapon)) return;
+	if (GetWeaponSlot(PlayerInfo.ActiveSlot) != _Weapon) return;
+
+	InGameWidget->UpdateAmmoCount(_Weapon->GetCurrentMagSize(), GetWeaponAmmoTotal());
 }
 
 void ABRCharacter::SERVERJumpingOffPlane_Implementation(bool _JumpingOffPlane)

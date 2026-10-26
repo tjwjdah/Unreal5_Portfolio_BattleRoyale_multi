@@ -54,16 +54,13 @@ void AWeaponItem::Reload(int32 _AvailableAmmo, int32& _Used, int32& _RemainingAm
 {
 	
 	if (_AvailableAmmo >= GetAmmoNeedFull()) {
-		int32 AmmoNeed;
-		AmmoNeed = GetAmmoNeedFull();
+		int32 AmmoNeed = GetAmmoNeedFull();
 		CurrentMagSize = MaxMagSize;
-		MCSetCurrentMagSize(MaxMagSize);
 		_Used = AmmoNeed;
 		_RemainingAmmo = _AvailableAmmo - AmmoNeed;
 	}
 	else {
-		CurrentMagSize = CurrentMagSize + _AvailableAmmo;
-		MCSetCurrentMagSize(CurrentMagSize);
+		CurrentMagSize += _AvailableAmmo;
 		_Used = _AvailableAmmo;
 		_RemainingAmmo = 0;
 	}
@@ -77,7 +74,9 @@ void AWeaponItem::StartFire()
 	WeaponTimerHandle.Invalidate();
 	Fire();
 	if (LoopFire) {
-		GetWorldTimerManager().SetTimer(WeaponTimerHandle, this, &AWeaponItem::FireWeapon, FireRate > 0 ? FireRate : 1.f, true);
+		if (CurrentMagSize > 0)
+			GetWorldTimerManager().SetTimer(WeaponTimerHandle, this, &AWeaponItem::FireWeapon, FireRate > 0 ? FireRate : 1.f, true);
+
 		if (IsValid(FireStartSound))
 			MCPlaySoundandEffect();
 	}
@@ -86,12 +85,12 @@ void AWeaponItem::StartFire()
 		if (IsValid(FireStartSound))
 			MCPlaySoundandEffect();
 		Ready = false;
-		SERVERSetReady(false);
+		TWeakObjectPtr<AWeaponItem> WeakThis(this);
 		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, [this] {
-			Ready = true;
-			SERVERSetReady(true);
-			}, FireRate, false);
+		GetWorldTimerManager().SetTimer(TimerHandle, [WeakThis]() {
+			if (WeakThis.IsValid())
+				WeakThis->Ready = true;
+			}, FMath::Max(0.001, FireRate), false);
 	}
 	
 }
@@ -229,12 +228,9 @@ bool AWeaponItem::Fire()
 	Bullet->SetOwner(WeaponOwner);
 	Bullet->SetWeapon(this);
 	Bullet->FinishSpawning(Trans2);
-	CurrentMagSize -= 1;
-	SetCurrentMagSize(CurrentMagSize);
-	if (CurrentMagSize > 0)
-		return true;
-	CurrentMagSize = 0;
-	SetCurrentMagSize(CurrentMagSize);
+	CurrentMagSize = FMath::Max(0, CurrentMagSize - 1);
+	if (CurrentMagSize > 0) return true;
+
 	StopFire();
 	return true;
 }
@@ -254,9 +250,12 @@ void AWeaponItem::SERVERSetWeaponOwner_Implementation(ABRCharacter* _Char)
 	WeaponOwner = _Char; 
 }
 
-void AWeaponItem::SERVERSetReady_Implementation(bool _Ready)
+
+
+void AWeaponItem::OnRep_CurrentMagSize()
 {
-	Ready = true; 
+	if (!IsValid(WeaponOwner)) return;
+	WeaponOwner->RefreshWeaponAmmoHUD(this);
 }
 
 void AWeaponItem::MCPlaySoundandEffect_Implementation()

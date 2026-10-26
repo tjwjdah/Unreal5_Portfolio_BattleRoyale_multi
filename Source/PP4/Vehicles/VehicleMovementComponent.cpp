@@ -60,25 +60,29 @@ void UVehicleMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 void UVehicleMovementComponent::SimulateMove(FVehicleMove _Move)
 {
-    if (!IsValid(Owner))return;
+    if (!IsValid(Owner)) return;
 
     auto* M = Cast<UChaosWheeledVehicleMovementComponent>(Owner->GetVehicleMovement());
     if (!M) return;
 
-    if (_Move.Throttle >= 0.f)
-    {
+    float ThrottleInput = FMath::Clamp(_Move.Throttle, -1.f, 1.f);
+    float BrakeInput = FMath::Clamp(_Move.Brake, 0.f, 1.f);
 
-        M->SetBrakeInput(0.f);
-        M->SetThrottleInput(FMath::Clamp(_Move.Throttle, 0.f, 1.f));
-    }
-    else
-    {
-        const float a = FMath::Clamp(-_Move.Throttle, 0.f, 1.f);
-        M->SetBrakeInput(a);
+    M->SetSteeringInput(FMath::Clamp(_Move.Steering, -1.f, 1.f));
+    M->SetHandbrakeInput(_Move.Handbrake);
+
+    if (BrakeInput > 0.f || _Move.Handbrake) {
         M->SetThrottleInput(0.f);
+        M->SetBrakeInput(BrakeInput);
     }
-    M->SetSteeringInput(_Move.Steering);
-    
+    else if (ThrottleInput >= 0.f) {
+        M->SetThrottleInput(ThrottleInput);
+        M->SetBrakeInput(0.f);
+    }
+    else {
+        M->SetThrottleInput(0.f);
+        M->SetBrakeInput(-ThrottleInput);
+    }
 }
 
 void UVehicleMovementComponent::SetVelocity(FVector Val)

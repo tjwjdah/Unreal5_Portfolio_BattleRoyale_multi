@@ -217,58 +217,77 @@ bool AZone::SetupStep()
 
 void AZone::HandlePlayersInside()
 {
+	if (!HasAuthority() || !IsValid(ZoneMesh)) return;
+
 	TArray<AActor*> OverlappingActors;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	TArray<AActor*> ActorsToIgnore;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
-	UKismetSystemLibrary::ComponentOverlapActors(ZoneMesh, GetActorTransform(), ObjectTypes, ACharacter::StaticClass(), ActorsToIgnore, OverlappingActors);
-	
-	for (int32 i = 0; i < OverlappingActors.Num(); i++) {
-		if (!PlayersOutside.Contains(OverlappingActors[i]))continue;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
 
-		PlayersOutside.Remove(OverlappingActors[i]);
-		CV(ABRCharacter, Char, OverlappingActors[i]);
+	UKismetSystemLibrary::ComponentOverlapActors(
+		ZoneMesh, GetActorTransform(), ObjectTypes,
+		ACharacter::StaticClass(), ActorsToIgnore, OverlappingActors);
 
-		if (!IsValid(Char)) {
-			CV(AAICharacter, AIChar, OverlappingActors[i]);
-			if (AIChar) {
-				AIChar->InZone();
+	// 현재 월드에 존재하는 플레이어와 AI 캐릭터 확인
+	TArray<AActor*> AllCharacters;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacter::StaticClass(), AllCharacters);
+
+	TArray<TObjectPtr<AActor>> NewInside;
+	TArray<TObjectPtr<AActor>> NewOutside;
+
+	for (AActor* Actor : AllCharacters) {
+		ABRCharacter* Player = Cast<ABRCharacter>(Actor);
+		AAICharacter* AI = Cast<AAICharacter>(Actor);
+
+		if (!IsValid(Player) && !IsValid(AI)) continue;
+		if (Player && !Player->IsAlive()) continue;
+		if (AI && !AI->IsAlive()) continue;
+
+		// 비행기에 탑승 중인 플레이어는 자기장 피해 대상에서 제외
+		if (Player && Player->GetPlayerInfo().Movement == EMovementState::InPlane) continue;
+
+		const bool bInside = OverlappingActors.Contains(Actor);
+
+		if (bInside) {
+			NewInside.Add(Actor);
+			if (PlayerInCircle.Contains(Actor)) continue;
+
+			if (IsValid(AI)) {
+				AI->InZone();
 			}
-			continue;
-		}
-
-		if (!Char->GetEnablePostProcessing()) continue;
-		Char->PlayerInZoneStatus(true);
-		Char->CLIENTPlayerInZoneStatus(true);
-	}
-	for (int32 i = 0; i < PlayerInCircle.Num(); i++) {
-		if (OverlappingActors.Contains(PlayerInCircle[i]))continue;
-		if (!IsValid(PlayerInCircle[i]))continue;
-		PlayersOutside.Add(PlayerInCircle[i]);
-		CV(ABRCharacter, Char, PlayerInCircle[i]);
-
-		if (!IsValid(Char)) {
-			CV(AAICharacter, AIChar, PlayerInCircle[i]);
-			if (AIChar) {
-				AIChar->OutZone();
+			else if (Player->GetEnablePostProcessing()) {
+				Player->PlayerInZoneStatus(true);
+				Player->CLIENTPlayerInZoneStatus(true);
 			}
-			continue;
 		}
+		else {
+			NewOutside.Add(Actor);
+			if (PlayersOutside.Contains(Actor)) continue;
 
-		if (!Char->GetEnablePostProcessing()) continue;
-		Char->PlayerInZoneStatus(false);
-		Char->CLIENTPlayerInZoneStatus(false);
+			if (IsValid(AI)) {
+				AI->OutZone();
+			}
+			else if (Player->GetEnablePostProcessing()) {
+				Player->PlayerInZoneStatus(false);
+				Player->CLIENTPlayerInZoneStatus(false);
+			}
+		}
 	}
-	PlayerInCircle = OverlappingActors;
+
+	PlayerInCircle = MoveTemp(NewInside);
+	PlayersOutside = MoveTemp(NewOutside);
 }
 
 void AZone::DamageTimer()
 {
+	if (!HasAuthority()) return;
+
 	HandlePlayersInside();
 
 	for (int32 i = 0; i < PlayersOutside.Num(); i++) {
-		if (!IsValid(PlayersOutside[i]))continue;
+		if (!IsValid(PlayersOutside[i])) continue;
+
 		CV(ABRCharacter, Char, PlayersOutside[i]);
 		if (IsValid(Char))
 			Char->DamageTaken(DamagePerSec, SourceName, nullptr, false);
